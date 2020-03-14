@@ -1,7 +1,7 @@
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import request from 'request-promise-native';
-import { Payment } from '.';
+import { Payment } from '../..';
 
 export interface GoogleKeyObject {
   /* eslint-disable camelcase */
@@ -59,8 +59,8 @@ export function requestToken(keyObject: GoogleKeyObject, token: string): Promise
 }
 
 export function generateURL(payment: Payment, token: string): string {
-  const packageName = encodeURIComponent(payment.packageName);
-  const productId = encodeURIComponent(payment.productId);
+  const packageName = encodeURIComponent(payment.packageName!);
+  const productId = encodeURIComponent(payment.productId!);
   const receipt = encodeURIComponent(payment.receipt);
   const purchaseType = payment.subscription ? 'subscriptions' : 'product';
   const accessToken = encodeURIComponent(token);

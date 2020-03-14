@@ -31,6 +31,10 @@ export interface Payment {
    * The Google service account key file (JSON).
    */
   keyFile?: string;
+  /**
+   * Set to true when it's a Google subscription.
+   */
+  subscription?: boolean;
 }
 
 /**
