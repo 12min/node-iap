@@ -6,7 +6,7 @@ import verifyPayment from '.';
 
 jest.mock('./lib/apple');
 jest.mock('./lib/google');
-jest.mock('./lib/amazon')
+jest.mock('./lib/amazon');
 
 it('should call proper platform', async () => {
   const payment = {
@@ -37,7 +37,7 @@ it('should call proper platform', async () => {
     productId: 'amazon.product.123',
     transactionId: 'amazon.transaction.123',
     purchaseDate: new Date(),
-    expirationDate: new Date()
+    expirationDate: new Date(),
   });
 
   await verifyPayment('google', payment);
