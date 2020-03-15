@@ -1,9 +1,10 @@
 import apple, { AppleReceiptResponse } from './lib/apple';
 import google, { GoogleReceiptResponse } from './lib/google';
+import amazon, { AmazonReceiptResponse } from './lib/amazon';
 
-const engine = { apple, google };
+const engine = { apple, google, amazon };
 
-export type Platform = 'google' | 'apple';
+export type Platform = 'google' | 'apple' | 'amazon';
 
 export interface Payment {
   /**
@@ -35,6 +36,10 @@ export interface Payment {
    * Set to true when it's a Google subscription.
    */
   subscription?: boolean;
+  /**
+   * Amazon user ID
+   */
+  userId?: string;
 }
 
 /**
@@ -42,11 +47,11 @@ export interface Payment {
  */
 export interface Receipt {
   productId: string;
-  packageName: string;
+  packageName?: string;
   transactionId: string;
   purchaseDate: Date;
   expirationDate: Date;
-  originalReceiptObject?: AppleReceiptResponse | GoogleReceiptResponse;
+  originalReceiptObject?: AppleReceiptResponse | GoogleReceiptResponse | AmazonReceiptResponse;
 }
 
 /**
