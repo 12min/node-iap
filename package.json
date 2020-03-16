@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --verbose",
-    "lint": "eslint ./**/*.[tj]s"
+    "lint": "eslint ./**/*.[tj]s ./bin/verify-payment",
+    "ci": "npm run lint && npm test"
   },
   "repository": {
     "type": "git",
@@ -50,7 +51,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm test"
+      "pre-commit": "npm run ci"
     }
   }
 }

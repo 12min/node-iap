@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+const invariant = require('invariant');
+const argv = require('minimist')(process.argv.slice(2));
+const verifyPayment = require('../');
+
+const platforms = new Set(['apple', 'google', 'amazon', 'roku']);
+
+async function main() {
+  const platform = process.argv[1];
+  invariant(typeof platform === 'string', 'Must provide a platform');
+  invariant(platforms.has(platform), `Platform not valid: ${platform}.`);
+
+  const receipt = await verifyPayment(platform, argv);
+  console.log(JSON.stringify(receipt, null, '  '));
+}
+
+main();

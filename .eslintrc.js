@@ -19,7 +19,6 @@ module.exports = {
     rules: {
       '@typescript-eslint/no-non-null-assertion': 0,
       '@typescript-eslint/no-namespace': 0,
-      /* it's a cloud function, so it does not make sense. */
       'import/prefer-default-export': 0,
       'import/no-extraneous-dependencies': 0,
   
