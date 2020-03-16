@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --verbose",
-    "lint": "eslint ."
+    "lint": "eslint ./**/*.[tj]s"
   },
   "repository": {
     "type": "git",

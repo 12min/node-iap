@@ -2,11 +2,13 @@ import { mocked } from 'ts-jest/utils';
 import apple from './lib/apple';
 import google from './lib/google';
 import amazon from './lib/amazon';
+import roku from './lib/roku';
 import verifyPayment from '.';
 
 jest.mock('./lib/apple');
 jest.mock('./lib/google');
 jest.mock('./lib/amazon');
+jest.mock('./lib/roku');
 
 it('should call proper platform', async () => {
   const payment = {
@@ -39,6 +41,13 @@ it('should call proper platform', async () => {
     purchaseDate: new Date(),
     expirationDate: new Date(),
   });
+  const rokuMock = mocked(roku, true);
+  rokuMock.mockResolvedValueOnce({
+    productId: 'abc123',
+    transactionId: 'abc123',
+    purchaseDate: new Date(),
+    expirationDate: new Date()
+  });
 
   await verifyPayment('google', payment);
   expect(googleMock).toHaveBeenCalled();
@@ -48,4 +57,10 @@ it('should call proper platform', async () => {
 
   await verifyPayment('amazon', payment);
   expect(amazonMock).toHaveBeenCalled();
+
+  await verifyPayment('roku', {
+    devToken: 'abc123',
+    receipt: '6ccb40bf-bd7a-49dc-9846-aafd01890ba5',
+  });
+  expect(rokuMock).toHaveBeenCalled();
 });

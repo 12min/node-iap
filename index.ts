@@ -1,10 +1,11 @@
 import apple, { AppleReceiptResponse } from './lib/apple';
 import google, { GoogleReceiptResponse } from './lib/google';
 import amazon, { AmazonReceiptResponse } from './lib/amazon';
+import roku, { RokuReceiptResponse } from './lib/roku';
 
-const engine = { apple, google, amazon };
+const engine = { apple, google, amazon, roku };
 
-export type Platform = 'google' | 'apple' | 'amazon';
+export type Platform = 'google' | 'apple' | 'amazon' | 'roku';
 
 export interface Payment {
   /**
@@ -40,6 +41,10 @@ export interface Payment {
    * Amazon user ID
    */
   userId?: string;
+  /**
+   * Roku's developer token
+   */
+  devToken?: string;
 }
 
 /**
@@ -50,8 +55,12 @@ export interface Receipt {
   packageName?: string;
   transactionId: string;
   purchaseDate: Date;
-  expirationDate: Date;
-  originalReceiptObject?: AppleReceiptResponse | GoogleReceiptResponse | AmazonReceiptResponse;
+  expirationDate: Date | null;
+  originalReceiptObject?:
+    AppleReceiptResponse |
+    GoogleReceiptResponse |
+    AmazonReceiptResponse |
+    RokuReceiptResponse;
 }
 
 /**
