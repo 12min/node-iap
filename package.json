@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest --verbose",
     "lint": "eslint ./**/*.[tj]s ./bin/verify-payment",
-    "ci": "npm run lint && npm test"
+    "ci": "npm run lint && npm test -- --coverage && coveralls < coverage/lcov.info"
   },
   "repository": {
     "type": "git",
@@ -41,6 +41,7 @@
     "@types/request-promise-native": "1.0.17",
     "@typescript-eslint/eslint-plugin": "2.22.0",
     "@typescript-eslint/parser": "2.22.0",
+    "coveralls": "3.0.9",
     "eslint": "6.8.0",
     "eslint-config-airbnb-base": "14.0.0",
     "eslint-plugin-import": "2.20.1",
@@ -51,7 +52,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run ci"
+      "pre-commit": "npm run lint && npm test"
     }
   }
 }
