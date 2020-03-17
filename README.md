@@ -1,5 +1,8 @@
 # In-app purchase verification
 
+[![Build Status](https://travis-ci.com/12min/node-iap.svg?branch=master)](https://travis-ci.com/12min/node-iap)
+[![Coverage Status](https://coveralls.io/repos/github/12min/node-iap/badge.svg?branch=master)](https://coveralls.io/github/12min/node-iap?branch=master)
+
 Inspired by the [iap_verifier](https://github.com/pcrawfor/iap_verifier/) CoffeeScript module
 written by Paul Crawford, I wanted a pure JavaScript implementation of in-app purchase verification.
 I also wanted to add support for other app stores, and not just limit this to Apple. The `iap`
