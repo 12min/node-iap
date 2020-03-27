@@ -1,6 +1,6 @@
 {
   "name": "@12min/iap",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "In-app purchase validation for Apple, Google, Amazon, Roku",
   "main": "./dist/index.js",
   "module": true,
