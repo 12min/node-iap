@@ -3,7 +3,7 @@ import apple from './lib/apple';
 import google from './lib/google';
 import amazon from './lib/amazon';
 import roku from './lib/roku';
-import verifyPayment from '.';
+import verifyPayment from './index';
 
 jest.mock('./lib/apple');
 jest.mock('./lib/google');
@@ -16,7 +16,7 @@ it('should call proper platform', async () => {
     productId: 'com.compant.product.in_app',
     receipt: 'abc123',
     secret: 'abc123',
-    keyFile: '',
+    keyFile: './service-account.json',
   };
   const appleMock = mocked(apple, true);
   appleMock.mockResolvedValueOnce({

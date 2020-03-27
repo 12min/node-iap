@@ -1,12 +1,14 @@
 {
-  "name": "iap",
+  "name": "@12min/iap",
   "version": "1.1.1",
   "description": "In-app purchase validation for Apple, Google, Amazon, Roku",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "module": true,
   "scripts": {
     "test": "jest --verbose",
     "lint": "eslint ./**/*.[tj]s ./bin/verify-payment",
-    "ci": "npm run lint && npm test -- --coverage && coveralls < coverage/lcov.info"
+    "ci": "npm run lint && npm test -- --coverage && coveralls < coverage/lcov.info",
+    "build": "tsc --project tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -54,5 +56,8 @@
     "hooks": {
       "pre-commit": "npm run lint && npm test"
     }
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }
