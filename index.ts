@@ -3,6 +3,8 @@ import google, { GoogleReceiptResponse } from './lib/google';
 import amazon, { AmazonReceiptResponse } from './lib/amazon';
 import roku, { RokuReceiptResponse } from './lib/roku';
 
+export { default as IapError } from './iap-error';
+
 const engine = { apple, google, amazon, roku };
 
 export type Platform = 'google' | 'apple' | 'amazon' | 'roku';
@@ -57,10 +59,10 @@ export interface Receipt {
   purchaseDate: Date;
   expirationDate: Date | null;
   originalReceiptObject?:
-    AppleReceiptResponse |
-    GoogleReceiptResponse |
-    AmazonReceiptResponse |
-    RokuReceiptResponse;
+  AppleReceiptResponse |
+  GoogleReceiptResponse |
+  AmazonReceiptResponse |
+  RokuReceiptResponse;
 }
 
 /**

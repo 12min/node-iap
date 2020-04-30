@@ -1,4 +1,5 @@
 import request from 'request-promise-native';
+import IapError from '../../iap-error';
 import sampleReceipt from './sample-receipt.json';
 import verifyPayment from '.';
 
@@ -59,7 +60,11 @@ it('should raise an error when status is not 0', async () => {
 
   await expect(verifyPayment(payment))
     .rejects
-    .toThrow('The App Store could not read the JSON object you provided.');
+    .toThrow(expect.objectContaining({
+      type: 'APPSTORE_ERROR',
+      message: 'The App Store could not read the JSON object you provided.',
+      meta: { appleStatus: 21000 },
+    }));
 });
 
 it('should validate receipt and secret as a string', async () => {
@@ -135,7 +140,11 @@ it('should check the product id against the receipt', async () => {
 
   await expect(verifyPayment(payment))
     .rejects
-    .toThrow(/Wrong product id: com\.company\.product, expected: com\.company\.product_0/);
+    .toThrow(expect.objectContaining({
+      type: 'INVALID_INPUT',
+      message: 'Wrong product id: com.company.product, expected: com.company.product_0',
+      meta: { field: 'productId' },
+    }));
 });
 
 it('should check the bundle id against the receipt', async () => {
@@ -155,7 +164,11 @@ it('should check the bundle id against the receipt', async () => {
 
   await expect(verifyPayment(payment))
     .rejects
-    .toThrow(/Wrong package name: com\.company\.app_1, expected: com\.company\.app_0/);
+    .toThrow(expect.objectContaining({
+      type: 'INVALID_INPUT',
+      message: 'Wrong package name: com.company.app_1, expected: com.company.app_0',
+      meta: { field: 'packageName' },
+    }));
 });
 
 it('should parse the receipt properly', async () => {

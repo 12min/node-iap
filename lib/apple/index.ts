@@ -1,6 +1,7 @@
 import request from 'request-promise-native';
 import { invariantPromise as invariant } from '../util';
 import { Payment, Receipt } from '../..';
+import IapError from '../../iap-error';
 
 const appleAPI = {
   sandbox: 'https://sandbox.itunes.apple.com/verifyReceipt',
@@ -14,8 +15,8 @@ const appleAPI = {
  *
  * @see https://developer.apple.com/library/archive/releasenotes/General/ValidateAppStoreReceipt/Chapters/ValidateRemotely.html#//apple_ref/doc/uid/TP40010573-CH104-SW5
  */
-type ReceiptStatus =
-    0 | 21000 | 21002 | 21003 | 21004 | 21005 | 21006 | 21007 | 21008 | 21009 | 21010
+export type ReceiptStatus =
+  0 | 21000 | 21002 | 21003 | 21004 | 21005 | 21006 | 21007 | 21008 | 21009 | 21010
 
 const responseCodes: { [key: number]: string } = {
   21000: 'The App Store could not read the JSON object you provided.',
@@ -144,12 +145,20 @@ function verifyReceipt(payment: Payment, receipt: AppleReceiptResponse): AppleRe
     const latestReceipt = getLatestReceipt(receipt.receipt.in_app)!;
 
     if (payment.productId !== undefined && latestReceipt.product_id !== payment.productId) {
-      throw new Error(`Wrong product id: ${payment.productId}, expected: ${latestReceipt.product_id}`);
+      throw new IapError(
+        'INVALID_INPUT',
+        `Wrong product id: ${payment.productId}, expected: ${latestReceipt.product_id}`,
+        { field: 'productId' },
+      );
     }
   }
 
   if (payment.packageName !== undefined && receipt.receipt.bundle_id !== payment.packageName) {
-    throw new Error(`Wrong package name: ${payment.packageName}, expected: ${receipt.receipt.bundle_id}`);
+    throw new IapError(
+      'INVALID_INPUT',
+      `Wrong package name: ${payment.packageName}, expected: ${receipt.receipt.bundle_id}`,
+      { field: 'packageName' },
+    );
   }
 
   return receipt;
@@ -195,14 +204,18 @@ export default function verifyPayment(payment: Payment): Promise<Receipt> {
     invariant(typeof payment.secret === 'string', 'Secret must be a string'),
     invariant(
       payment.excludeOldTransactions === undefined
-        || typeof payment.excludeOldTransactions === 'boolean',
+      || typeof payment.excludeOldTransactions === 'boolean',
       'excludeOldTransactions must be a boolean',
     ),
   ])
     .then(sendAPIRequest(paymentBody))
     .then((response: AppleReceiptResponse) => {
       if (response.status !== 0 && response.status !== 21006) {
-        throw new Error(responseCodes[response.status]);
+        throw new IapError(
+          'APPSTORE_ERROR',
+          responseCodes[response.status],
+          { appleStatus: response.status }
+        );
       }
       return response;
     })
