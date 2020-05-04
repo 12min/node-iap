@@ -1,7 +1,8 @@
 import { mocked } from 'ts-jest/utils';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
-import request from 'request-promise-native';
+import request, { Options, FullResponse } from 'request-promise-native';
+import { StatusCodeError } from 'request-promise-native/errors';
 import verifyPayment from '.';
 import {
   parseKeyFile, generateJWTToken, requestToken, generateURL,
@@ -177,4 +178,36 @@ it('shoud parse the receipt properly', async () => {
       expirationDate: new Date(1591798294146),
       originalReceiptObject: receipt,
     });
+});
+
+it('should throw 4** errors with IapError', async () => {
+  const error = new StatusCodeError(
+    400,
+    'Bad Request',
+    {} as unknown as Options,
+    {} as unknown as FullResponse,
+  );
+  mocked(fs.readFile, true)
+    .mockImplementationOnce((path, cb) => cb(null, Buffer.from(JSON.stringify(keyObject))));
+  mocked(request.post, true)
+    .mockResolvedValueOnce({
+      /* eslint-disable-next-line @typescript-eslint/camelcase */
+      access_token: 'abc.123',
+    });
+  mocked(request.get, true).mockRejectedValueOnce(error);
+  const payment = {
+    packageName: 'com.company.product',
+    productId: 'com.company.product.in_app',
+    receipt: 'abc123',
+    subscription: true,
+    keyFile: '',
+  };
+
+  await expect(verifyPayment(payment))
+    .rejects
+    .toThrow(expect.objectContaining({
+      type: 'GOOGLEPLAY_ERROR',
+      message: error.message,
+      meta: { error },
+    }));
 });

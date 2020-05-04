@@ -1,9 +1,11 @@
 import request from 'request-promise-native';
+import { StatusCodeError } from 'request-promise-native/errors';
 import {
   parseKeyFile, generateJWTToken, requestToken, generateURL,
 } from './credentials';
 import { invariantPromise as invariant } from '../util';
 import { Payment, Receipt } from '../..';
+import IapError from '../../iap-error';
 
 export interface GoogleReceiptResponse {
   kind: string;
@@ -31,6 +33,15 @@ function parseReceipt(payment: Payment, receipt: GoogleReceiptResponse): Receipt
   };
 }
 
+function handleRequestError(err: Error) {
+  if (err.name !== 'StatusCodeError' || !((err as StatusCodeError).statusCode >= 400)) {
+    throw err;
+  }
+
+
+  throw new IapError('GOOGLEPLAY_ERROR', err.message, { error: err });
+}
+
 export default function verifyPayment(payment: Payment): Promise<Receipt> {
   return Promise.all([
     invariant(typeof payment.packageName === 'string', 'Package name must be a string'),
@@ -44,6 +55,8 @@ export default function verifyPayment(payment: Payment): Promise<Receipt> {
       return requestToken(keyObject, token);
     })
     .then((token) => generateURL(payment, token))
-    .then((url) => request.get(url, { json: true }))
+    .then((url) =>
+      request.get(url, { json: true })
+        .catch(handleRequestError))
     .then((response) => parseReceipt(payment, response));
 }
