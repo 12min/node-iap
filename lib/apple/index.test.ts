@@ -1,24 +1,32 @@
-import request from 'request-promise-native';
+import { mocked } from 'ts-jest/utils';
+import request, { RequestPromise } from 'request-promise-native';
 import IapError from '../../iap-error';
 import sampleReceipt from './sample-receipt.json';
 import verifyPayment from '.';
 
+const fakeReceipt = {
+  valid: sampleReceipt,
+  expired: {
+    ...sampleReceipt,
+    status: 21006,
+  },
+  invalid: {
+    ...sampleReceipt,
+    status: 21000,
+  },
+};
+
 jest.mock('request-promise-native');
-const requestMock = request.post as jest.Mock<request.RequestPromise>;
 
-const fakeValidReceiptObject = sampleReceipt;
+function mockResponse(response: object): jest.MockInstance<RequestPromise, any[]> {
+  return mocked(request.post, true)
+    .mockResolvedValueOnce(response);
+}
 
-requestMock.mockResolvedValue(fakeValidReceiptObject);
-
-const fakeValidExpiredReceiptObject = {
-  ...sampleReceipt,
-  status: 21006,
-};
-
-const fakeInvalidReceiptObject = {
-  ...sampleReceipt,
-  status: 21000,
-};
+beforeAll(() => {
+  mocked(request.post, true)
+    .mockResolvedValue(fakeReceipt.valid);
+});
 
 it('should resolve the receipt when the status is 0', async () => {
   const payment = {
@@ -27,36 +35,41 @@ it('should resolve the receipt when the status is 0', async () => {
   };
 
   await expect(verifyPayment(payment)).resolves.toBeDefined();
-  expect(requestMock).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-    json: {
-      'receipt-data': 'lorem-ipsum',
-      password: 'pwd-anything',
-    },
-  }));
+  expect(request.post)
+    .toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      json: {
+        'receipt-data': 'lorem-ipsum',
+        password: 'pwd-anything',
+      },
+    }));
 });
 
 it('should resolve the receipt when the status is 21006', async () => {
-  requestMock.mockResolvedValueOnce(fakeValidExpiredReceiptObject);
+  mockResponse(fakeReceipt.expired);
   const payment = {
     receipt: 'lorem-ipsum',
     secret: 'pwd-anything',
   };
 
-  await expect(verifyPayment(payment)).resolves.toBeDefined();
-  expect(requestMock).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-    json: {
-      'receipt-data': 'lorem-ipsum',
-      password: 'pwd-anything',
-    },
-  }));
+  const receipt = await verifyPayment(payment);
+
+  expect(receipt).toBeDefined();
+  expect(request.post)
+    .toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      json: {
+        'receipt-data': 'lorem-ipsum',
+        password: 'pwd-anything',
+      },
+    }));
 });
 
 it('should raise an error when status is not 0', async () => {
-  requestMock.mockResolvedValueOnce(fakeInvalidReceiptObject);
+  mockResponse(fakeReceipt.invalid);
   const payment = {
     receipt: 'lorem-ipsum',
     secret: 'pwd-anything',
   };
+
 
   await expect(verifyPayment(payment))
     .rejects
@@ -68,7 +81,7 @@ it('should raise an error when status is not 0', async () => {
 });
 
 it('should validate receipt and secret as a string', async () => {
-  requestMock.mockResolvedValueOnce(fakeValidReceiptObject);
+  mockResponse(fakeReceipt.valid);
 
   await expect(verifyPayment({ receipt: 0 as unknown as string, secret: 'abc123' }))
     .rejects
@@ -97,8 +110,10 @@ it('should send exclude old transactions on the request', async () => {
     excludeOldTransactions: true,
   };
 
-  await expect(verifyPayment(payment)).resolves.toBeDefined();
-  expect(requestMock).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({
+  const receipt = await verifyPayment(payment);
+
+  expect(receipt).toBeDefined();
+  expect(request.post).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({
     json: {
       'receipt-data': 'abc123',
       password: '123abc',
@@ -112,17 +127,23 @@ it('should call the sandbox api in case of the receipt is a sandbox one', async 
     receipt: 'abc123',
     secret: '123abc',
   };
-  requestMock.mockResolvedValueOnce({
+  mockResponse({
     ...sampleReceipt,
     status: 21007,
   });
 
-  await expect(verifyPayment(payment)).resolves.toBeDefined();
-  expect(requestMock).toHaveBeenCalledWith('https://sandbox.itunes.apple.com/verifyReceipt', expect.anything());
+  const receipt = await verifyPayment(payment);
+
+  expect(receipt).toBeDefined();
+  expect(request.post)
+    .toHaveBeenCalledWith(
+      'https://sandbox.itunes.apple.com/verifyReceipt',
+      expect.anything()
+    );
 });
 
 it('should check the product id against the receipt', async () => {
-  requestMock.mockResolvedValueOnce({
+  mockResponse({
     status: 0,
     receipt: {
       /* eslint-disable @typescript-eslint/camelcase */
@@ -148,7 +169,7 @@ it('should check the product id against the receipt', async () => {
 });
 
 it('should check the bundle id against the receipt', async () => {
-  requestMock.mockResolvedValueOnce({
+  mockResponse({
     status: 0,
     receipt: {
       ...sampleReceipt.receipt,
@@ -172,14 +193,15 @@ it('should check the bundle id against the receipt', async () => {
 });
 
 it('should parse the receipt properly', async () => {
-  requestMock.mockResolvedValueOnce(sampleReceipt);
+  mockResponse(sampleReceipt);
   const payment = {
     receipt: 'abc123',
     secret: '123abc',
   };
 
-  await expect(verifyPayment(payment))
-    .resolves
+  const receipt = await verifyPayment(payment);
+
+  expect(receipt)
     .toMatchObject({
       productId: 'com.company.product.in_app',
       packageName: 'com.company.product',

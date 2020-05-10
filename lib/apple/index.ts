@@ -1,5 +1,5 @@
 import request from 'request-promise-native';
-import { invariantPromise as invariant } from '../util';
+import invariant from 'invariant';
 import { Payment, Receipt } from '../..';
 import IapError from '../../iap-error';
 
@@ -105,15 +105,14 @@ interface APIPaymentBody {
  *
  * @returns {Promise<ReceiptResponse>}
  */
-function sendAPIRequest(data: APIPaymentBody): (() => Promise<AppleReceiptResponse>) {
-  return (): Promise<AppleReceiptResponse> => request.post(appleAPI.production, { json: data })
-    .then((response) => {
-      if (response.status === 21007) {
-        return request.post(appleAPI.sandbox, { json: data });
-      }
+async function sendAPIRequest(data: APIPaymentBody): Promise<AppleReceiptResponse> {
+  const response = await request.post(appleAPI.production, { json: data })
 
-      return response;
-    });
+  if (response.status === 21007) {
+    return request.post(appleAPI.sandbox, { json: data });
+  }
+
+  return response;
 }
 
 /**
@@ -192,33 +191,30 @@ function parseReceipt(receipt: AppleReceiptResponse): Receipt {
  *
  * @returns {Promise<Receipt>} Resolves to a processable receipt.
  */
-export default function verifyPayment(payment: Payment): Promise<Receipt> {
+export default async function verifyPayment(payment: Payment): Promise<Receipt> {
   const paymentBody: APIPaymentBody = {
     'receipt-data': payment.receipt,
     password: payment.secret!,
     'exclude-old-transactions': payment.excludeOldTransactions,
   };
 
-  return Promise.all([
-    invariant(typeof payment.receipt === 'string', 'Receipt must be a string'),
-    invariant(typeof payment.secret === 'string', 'Secret must be a string'),
-    invariant(
-      payment.excludeOldTransactions === undefined
-      || typeof payment.excludeOldTransactions === 'boolean',
-      'excludeOldTransactions must be a boolean',
-    ),
-  ])
-    .then(sendAPIRequest(paymentBody))
-    .then((response: AppleReceiptResponse) => {
-      if (response.status !== 0 && response.status !== 21006) {
-        throw new IapError(
-          'APPSTORE_ERROR',
-          responseCodes[response.status],
-          { appleStatus: response.status }
-        );
-      }
-      return response;
-    })
-    .then((receipt) => verifyReceipt(payment, receipt))
-    .then(parseReceipt);
+  invariant(typeof payment.receipt === 'string', 'Receipt must be a string');
+  invariant(typeof payment.secret === 'string', 'Secret must be a string');
+  invariant(
+    payment.excludeOldTransactions === undefined
+    || typeof payment.excludeOldTransactions === 'boolean',
+    'excludeOldTransactions must be a boolean',
+  );
+
+  const response = await sendAPIRequest(paymentBody);
+
+  if (response.status !== 0 && response.status !== 21006) {
+    throw new IapError(
+      'APPSTORE_ERROR',
+      responseCodes[response.status],
+      { appleStatus: response.status }
+    );
+  }
+
+  return parseReceipt(verifyReceipt(payment, response));
 }
