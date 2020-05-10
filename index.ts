@@ -1,13 +1,11 @@
 import apple, { AppleReceiptResponse } from './lib/apple';
 import google, { GoogleReceiptResponse } from './lib/google';
-import amazon, { AmazonReceiptResponse } from './lib/amazon';
-import roku, { RokuReceiptResponse } from './lib/roku';
 
 export { default as IapError } from './iap-error';
 
-const engine = { apple, google, amazon, roku };
+const engine = { apple, google };
 
-export type Platform = 'google' | 'apple' | 'amazon' | 'roku';
+export type Platform = 'google' | 'apple';
 
 export interface Payment {
   /**
@@ -39,14 +37,6 @@ export interface Payment {
    * Set to true when it's a Google subscription.
    */
   subscription?: boolean;
-  /**
-   * Amazon user ID
-   */
-  userId?: string;
-  /**
-   * Roku's developer token
-   */
-  devToken?: string;
 }
 
 /**
@@ -58,11 +48,7 @@ export interface Receipt {
   transactionId: string;
   purchaseDate: Date;
   expirationDate: Date | null;
-  originalReceiptObject?:
-  AppleReceiptResponse |
-  GoogleReceiptResponse |
-  AmazonReceiptResponse |
-  RokuReceiptResponse;
+  originalReceiptObject?: AppleReceiptResponse | GoogleReceiptResponse;
 }
 
 /**
