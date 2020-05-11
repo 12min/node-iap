@@ -48,14 +48,16 @@ export function generateJWTToken(keyObject: GoogleKeyObject): string {
   }, key, { algorithm: 'RS256' });
 }
 
-export function requestToken(keyObject: GoogleKeyObject, token: string): Promise<string> {
-  return request.post(keyObject.token_uri, {
+export async function requestToken(keyObject: GoogleKeyObject, token: string): Promise<string> {
+  const response = await request.post(keyObject.token_uri, {
     json: {
       /* eslint-disable-next-line @typescript-eslint/camelcase */
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
       assertion: token,
     },
-  }).then((response) => response.access_token);
+  });
+
+  return response.access_token;
 }
 
 export function generateURL(payment: Payment, token: string): string {

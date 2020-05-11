@@ -60,6 +60,6 @@ export interface Receipt {
  *
  * @returns {Promise<Receipt>}
  */
-export default function verifyPayment(platform: Platform, payment: Payment): Promise<Receipt> {
+export function verifyPayment(platform: Platform, payment: Payment): Promise<Receipt> {
   return engine[platform](payment);
 }

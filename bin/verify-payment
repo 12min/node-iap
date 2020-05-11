@@ -2,12 +2,12 @@
 
 const invariant = require('invariant');
 const argv = require('minimist')(process.argv.slice(2));
-const verifyPayment = require('../');
+const { verifyPayment } = require('../');
 
 const platforms = new Set(['apple', 'google', 'amazon', 'roku']);
 
 async function main() {
-  const platform = process.argv[1];
+  const platform = argv._[0];
   invariant(typeof platform === 'string', 'Must provide a platform');
   invariant(platforms.has(platform), `Platform not valid: ${platform}.`);
 

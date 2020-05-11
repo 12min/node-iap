@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils';
 import apple from './lib/apple';
 import google from './lib/google';
-import verifyPayment from './index';
+import { verifyPayment } from './index';
 
 jest.mock('./lib/apple');
 jest.mock('./lib/google');
