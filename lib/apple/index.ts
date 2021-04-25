@@ -123,12 +123,20 @@ async function sendAPIRequest(data: APIPaymentBody): Promise<AppleReceiptRespons
  * @returns {InAppPurchase | undefined} Returns undefined if the list is empty
  */
 function getLatestReceipt(receipts: InAppPurchase[]): InAppPurchase | undefined {
-  return receipts.reduce((cur, acc) => {
-    const curPurchaseTime = parseInt(cur.purchase_date_ms, 10);
-    const accPurchaseTime = parseInt(acc.purchase_date_ms, 10);
+  return receipts.reduce((cur?: InAppPurchase, acc?: InAppPurchase) => {
+    if (typeof cur != 'undefined' && typeof acc != 'undefined') {
+      const curPurchaseTime = parseInt(cur.purchase_date_ms, 10);
+      const accPurchaseTime = parseInt(acc.purchase_date_ms, 10);
 
-    return curPurchaseTime > accPurchaseTime ? cur : acc;
-  });
+      return curPurchaseTime > accPurchaseTime ? cur : acc;
+    }
+
+    if (typeof acc != 'undefined') {
+      return acc;
+    }
+
+    return undefined;
+  }, undefined);
 }
 
 /**
