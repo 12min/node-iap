@@ -64,7 +64,7 @@ export function generateURL(payment: Payment, token: string): string {
   const packageName = encodeURIComponent(payment.packageName!);
   const productId = encodeURIComponent(payment.productId!);
   const receipt = encodeURIComponent(payment.receipt);
-  const purchaseType = payment.subscription ? 'subscriptions' : 'product';
+  const purchaseType = payment.subscription ? 'subscriptions' : 'products';
   const accessToken = encodeURIComponent(token);
 
   return `https://www.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/${purchaseType}/${productId}/tokens/${receipt}?access_token=${accessToken}`;
